@@ -256,8 +256,72 @@ MoneyButtons.Total = MainTab:Button({
 
 MainTab:Divider()
 
+-- แทรกโค้ดนี้ใต้ส่วน Money (ประมาณบรรทัด 120-130)
 MainTab:Section({
-    Title = "Coming soon😭"
+    Title = "Module"
+})
+
+-- ตัวแปรควบคุม
+local AutoPickEnabled = false
+local pickupFolder = workspace:WaitForChild("DroppedItems")
+local PICKUP_RANGE = 15  -- ระยะ 15 studs
+local PICKUP_DELAY = 1.5  -- คลูดาว 1.5 วินาที
+
+-- ฟังก์ชันคำนวณระยะ
+local function GetDistanceFromRootPart(target)
+    if not target then return math.huge end
+    local char = LocalPlayer.Character or LocalPlayer.CharacterAdded:Wait()
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return math.huge end
+    return (root.Position - target.Position).Magnitude
+end
+
+-- ระบบเก็บไอเทมอัตโนมัติ (ระยะ 15, delay 1.5s)
+task.spawn(function()
+    local lastPickupTime = 0
+    
+    while task.wait(0.1) do
+        if AutoPickEnabled and pickupFolder then
+            local currentTime = tick()
+            
+            -- ตรวจสอบเวลา delay
+            if currentTime - lastPickupTime >= PICKUP_DELAY then
+                for _, item in pairs(pickupFolder:GetChildren()) do
+                    if item:IsA("Model") and item:FindFirstChild("PickUpZone") then
+                        local zone = item.PickUpZone
+                        local dist = GetDistanceFromRootPart(zone)
+                        
+                        -- ถ้าอยู่ในระยะ 15 studs
+                        if dist < PICKUP_RANGE then
+                            pcall(function()
+                                ReplicatedStorage.Remotes.Send:FireServer("pickup_dropped_item", item)
+                            end)
+                            
+                            lastPickupTime = currentTime  -- อัปเดตเวลาคลูดาว
+                            task.wait(PICKUP_DELAY)  -- รอ 1.5 วินาทีก่อนเก็บชิ้นต่อไป
+                            break  -- หยุดลูปชั่วคราว
+                        end
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- Toggle UI
+MainTab:Toggle({
+    Title = "Pick Items",
+    Default = false,
+    Callback = function(state)
+        AutoPickEnabled = state
+        if WindUI then
+            WindUI:Notify({
+                Title = "Auto Pick",
+                Description = state and "เปิดใช้งานแล้ว (15 studs, 1.5s delay)" or "ปิดใช้งานแล้ว",
+                Duration = 2
+            })
+        end
+    end
 })
 
 
@@ -1437,6 +1501,7 @@ ESPTab:Toggle({
         updateAllESPVisibility()
     end
 })
+
 
 
 
