@@ -2122,7 +2122,16 @@ task.spawn(
 )
 loadESP()
 -- == UI Tabs ==
+
 local Tab = Window:Tab({Title = "COMBAT:", Icon = "crosshair"})
+Tab:Toggle({
+    Title = "Silent Aim | Wallbang",
+    Desc = "ล็อคหัวกับยิงทะลุ",
+    Default = false,
+    Callback = function(state)
+        SilentAimEnabled = state
+    end
+})
 
 
 local FOVSlider =
