@@ -2157,6 +2157,17 @@ local FOVSlider =
     }
 )
 myConfig:Register("FOVRadius", FOVSlider)
+
+Tab:Dropdown({
+    Title = "Target Mode",
+    Desc = "",
+    Values = {"Head", "Humanoid"},
+    Default = "Head",
+    Callback = function(value)
+        TargetMode = value
+    end
+})
+
 local FriendsInput =
     Tab:Input(
     {
