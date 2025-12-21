@@ -1708,9 +1708,7 @@ RunService.RenderStepped:Connect(
     function()
         pcall(
             function()
-                if SilentAimAttachEnabled then
-                    CurrentTarget = getClosestTarget()
-                end
+            
                 if SilentFOVCircle then
                     SilentFOVCircle.Visible = SilentAimEnabled or SilentAimAttachEnabled or GoodGunEnabled
                     if isMobile then
@@ -1721,16 +1719,18 @@ RunService.RenderStepped:Connect(
                         SilentFOVCircle.Radius = FOVRadius
                     end
                 end
-                CurrentTarget = (SilentAimEnabled or SilentAimAttachEnabled or GoodGunEnabled) and getClosestTarget() or nil
-                if CurrentTarget and CurrentTarget.Character and CurrentTarget.Character:FindFirstChild("Head") then
-                    local targetHead = CurrentTarget.Character.Head
+                local shouldDrawTracer = SilentAimEnabled or SilentAimAttachEnabled or GoodGunEnabled
+                if shouldDrawTracer and CurrentTarget and CurrentTarget.Character then
+                    local targetHead = CurrentTarget.Character:FindFirstChild("Head")
                     local humanoid = CurrentTarget.Character:FindFirstChild("Humanoid")
-                    if humanoid and humanoid.Health > 0 then
-                        local centerScreenPos = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2) -- Center of FOV circle
+                    
+                    if targetHead and humanoid and humanoid.Health > 0 then
+                        local centerScreenPos = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
                         local targetScreenPos, targetOnScreen = Camera:WorldToViewportPoint(targetHead.Position)
+                        
                         if targetOnScreen then
                             Tracer.Visible = true
-                            Tracer.From = centerScreenPos -- Start from center of FOV circle
+                            Tracer.From = centerScreenPos
                             Tracer.To = Vector2.new(targetScreenPos.X, targetScreenPos.Y)
                             Tracer.Color = GoodGunEnabled and Color3.fromRGB(0, 255, 0) or Color3.fromRGB(255, 50, 50)
                         else
